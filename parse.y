@@ -26,7 +26,7 @@
 toplevel
 :
 | toplevel s_expr {
-  printtree($2);
+  print_tree($2);
   puts("");
   prompt();
 }

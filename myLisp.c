@@ -58,28 +58,40 @@ int main(void)
   extern int yyparse();
   
   prompt();
-  while(yyparse())
-    {
-      exit(1);
-    }
+  while(yyparse());
+
   return 0;
 }
 
-void printtree(LVALUE *tree)
+void print_tree(LVALUE *tree)
 {
-  if(tree->type != CELL)
+  if(NIL_P(tree)) printf("()");
+  else if(INT_P(tree)) printf("%d", tree->u.integer);
+  else if(SYMBOL_P(tree)) printf("%s", tree->u.symbol);
+  else if (PAIR_P(tree))
     {
-      if(NIL_P(tree)) printf("()");
-      else if(INT_P(tree)) printf("%d", tree->u.integer);
-      else if(SYMBOL_P(tree)) printf("%s", tree->u.symbol);
-      return;
+      printf("(");
+      while(1)
+	{
+	  print_tree(CAR(tree));
+	  tree = CDR(tree);
+	  if(NIL_P(tree)) break;
+	  
+	  if(INT_P(tree) || SYMBOL_P(tree))
+	    {
+	      printf(" . ");
+	      print_tree(tree);
+	      break;
+	    }
+	  printf(" ");
+	}
+      printf(")");
     }
-
-  printf(" (");
-  printtree(CAR(tree));
-  printf(" . ");
-  printtree(CDR(tree));
-  printf(") ");
+  else
+    {
+      fprintf(stderr, "print error");
+      exit(1);
+    }
 }
 
 

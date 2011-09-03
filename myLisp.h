@@ -7,6 +7,7 @@
 #define NIL_P(e) (e->type == NIL)
 #define INT_P(e) (e->type == INT)
 #define SYMBOL_P(e) (e->type == SYMBOL)
+#define PAIR_P(e) (e->type == CELL)
 
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
@@ -39,6 +40,6 @@ struct LVALUE_tag
 LVALUE* make_atom(Type, char*);
 LVALUE* cons(LVALUE*, LVALUE*);
 LVALUE* append(LVALUE*, LVALUE*);
-void printtree(LVALUE*);
+void print_tree(LVALUE*);
 void prompt();
 #endif /* _MYLISP_H_ */
