@@ -11,7 +11,6 @@
     int len;
   } Str;
 
-  FILE *yyin;
   int yylex(YYSTYPE*);
   int yyerror(char const*);
   void pushchar(Str* , int);
@@ -25,16 +24,11 @@
 %%
 
 toplevel
-: s_expr {
-  printf("=> ");
-  printtree($1);
-  printf("\nmyLisp> ");
- }
+:
 | toplevel s_expr {
-  printf("=> ");
   printtree($2);
-  printf("\nmyLisp> ");
-
+  puts("");
+  prompt();
 }
 ;
 
@@ -100,18 +94,17 @@ int yyerror (char const *s)
 }
 int input()
 {
-  return getc(yyin);
+  return fgetc(stdin);
 }
 
 int unput(int c)
 {
-  return ungetc(c, yyin);
+  return ungetc(c, stdin);
 }
 
 void pushchar(Str *str, int c)
 {
   str->len++;
-  /*printf("%d", str->len);*/
   str->str = (char*)realloc(str->str, sizeof(char) * str->len);
   str->str[str->len - 1] = (char)c;
 }

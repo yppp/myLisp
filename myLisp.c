@@ -33,45 +33,31 @@ LVALUE* make_atom(Type type, char *str)
   return r;
 }
 
-LVALUE* car(LVALUE *obj)
-{
-  return obj->u.cell.car;
-}
-
-LVALUE* cdr(LVALUE *obj)
-{
-  return obj->u.cell.cdr;
-}
-
-
 LVALUE* cons(LVALUE *car, LVALUE *cdr)
 {
   LVALUE *cell = (LVALUE*)malloc(sizeof(LVALUE));
   cell->type = CELL;
-  cell->u.cell.car = car;
-  cell->u.cell.cdr = cdr;
+  CAR(cell) = car;
+  CDR(cell) = cdr;
   return cell;
 }
 
 LVALUE* append(LVALUE *lis, LVALUE *a)
 {
   LVALUE *tmp;
-  if (lis->type == NIL) return a;
+  if (NIL_P(lis)) return a;
 
-  for(tmp = lis; tmp->u.cell.cdr->type != NIL; tmp = cdr(tmp));
+  for(tmp = lis; !(NIL_P(CDR(tmp))); tmp = CDR(tmp));
 
-  tmp->u.cell.cdr = a;
+  CDR(tmp) = a;
   return lis;
 }
 
 int main(void)
 {
   extern int yyparse();
-  extern FILE *yyin;
-
-  yyin = stdin;
   
-  printf("myLisp> ");
+  prompt();
   while(yyparse())
     {
       exit(1);
@@ -83,15 +69,21 @@ void printtree(LVALUE *tree)
 {
   if(tree->type != CELL)
     {
-      if(tree->type == NIL) printf("()");
-      else if(tree->type == INT) printf("%d", tree->u.integer);
-	else if(tree->type == SYMBOL) printf("%s", tree->u.symbol);
+      if(NIL_P(tree)) printf("()");
+      else if(INT_P(tree)) printf("%d", tree->u.integer);
+      else if(SYMBOL_P(tree)) printf("%s", tree->u.symbol);
       return;
     }
 
   printf(" (");
-  printtree(tree->u.cell.car);
+  printtree(CAR(tree));
   printf(" . ");
-  printtree(tree->u.cell.cdr);
+  printtree(CDR(tree));
   printf(") ");
+}
+
+
+void prompt()
+{
+  printf("myLisp> ");
 }
