@@ -26,7 +26,8 @@
 toplevel
 :
 | toplevel s_expr {
-  print_tree($2);
+  LVALUE *ex = $2;
+  print_tree(ex);
   puts("");
   prompt();
 }
@@ -64,16 +65,17 @@ int yylex (YYSTYPE *lvalp)
       pushchar(&str, c);
     }
 
-  if(isspace(c))
+  if(isspace(c) || c == '(' || c == ')' || c == ';')
     {
       pushchar(&str, '\0');
       *lvalp = make_atom(INT, str.str);
+      unput(c);
       free(str.str);
       return ATOM;
     }
   
   unput(c);
-  while(isgraph(c = input()) && !(c == '(' || c == ')' || c == ';'))
+  while(isgraph(c = input()))
     {
       pushchar(&str, c);
     }
