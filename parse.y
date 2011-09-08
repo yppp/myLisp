@@ -83,7 +83,7 @@ int yylex (YYSTYPE *lvalp)
     }
   
   unput(c);
-  while(isgraph(c = input()))
+  while(isgraph(c = input()) && !(c == '(' || c == ')' || c == ';'))
     {
       pushchar(&str, c);
     }
