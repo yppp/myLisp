@@ -1,6 +1,6 @@
 YACC = bison
 CC = gcc
-CFLAGS = -g -Wall -std=c89
+CFLAGS = -g -O0 -Wall -std=c89
 
 a.out: parse.y myLisp.c
 	$(YACC) parse.y

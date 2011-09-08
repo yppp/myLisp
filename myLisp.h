@@ -9,6 +9,7 @@
 #define SYMBOL_P(e) (e->type == SYMBOL)
 #define PAIR_P(e) (e->type == CELL)
 
+#define SYMBOL_NAME(e) (e->u.symbol)
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
 
@@ -16,7 +17,7 @@ typedef enum Type_tag {
   NIL,
   INT,
   SYMBOL,
-  CELL
+  CELL,
 } Type;
 
 typedef struct Cell_tag
@@ -42,4 +43,8 @@ LVALUE* cons(LVALUE*, LVALUE*);
 LVALUE* append(LVALUE*, LVALUE*);
 void print_tree(LVALUE*);
 void prompt();
+LVALUE* eval(LVALUE*, LVALUE*);
+LVALUE* apply(LVALUE*, LVALUE*, LVALUE*);
+LVALUE* assoc(LVALUE*, LVALUE*);
+LVALUE* pairlis(LVALUE*, LVALUE*);
 #endif /* _MYLISP_H_ */

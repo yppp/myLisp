@@ -27,7 +27,9 @@ toplevel
 :
 | toplevel s_expr {
   LVALUE *ex = $2;
-  print_tree(ex);
+
+  print_tree(eval(ex, make_atom(NIL, NULL)));
+
   puts("");
   prompt();
 }
