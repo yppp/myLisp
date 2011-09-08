@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include "myLisp.h"
 
@@ -52,9 +53,11 @@ int yylex (YYSTYPE *lvalp)
 {
   int c;
   Str str = {NULL, 0};
-  
-  c = input();
-  if (c == ';') while((c = input()) != '\n');
+
+  while(isspace(c = input()));
+
+  unput(c);
+  if ((c = input()) == ';') while((c = input()) != '\n');
 
   unput(c);
   while(isspace(c = input()));
@@ -70,10 +73,13 @@ int yylex (YYSTYPE *lvalp)
   if(isspace(c) || c == '(' || c == ')' || c == ';')
     {
       pushchar(&str, '\0');
-      *lvalp = make_atom(INT, str.str);
-      unput(c);
-      free(str.str);
-      return ATOM;
+      if(strlen(str.str) != 0)
+	{
+	  *lvalp = make_atom(INT, str.str);
+	  unput(c);
+	  free(str.str);
+	  return ATOM;
+	}
     }
   
   unput(c);
@@ -83,11 +89,18 @@ int yylex (YYSTYPE *lvalp)
     }
 
   pushchar(&str, '\0');
-  *lvalp = make_atom(SYMBOL, str.str);
+  if(strlen(str.str) != 0)
+    {
+      *lvalp = make_atom(SYMBOL, str.str);
 
-  unput(c);
-  free(str.str);
-  return ATOM;
+      unput(c);
+      free(str.str);
+      return ATOM;
+    }
+
+
+  fprintf(stderr, "lexer error");
+  exit(1);
 }
 
 
