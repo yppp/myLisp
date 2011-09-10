@@ -7,9 +7,10 @@ VALUE  make_atom(Type type, char *str)
 {
   LVALUE *r = (LVALUE*)malloc (sizeof(LVALUE));
   r->type = type;
+  r->u.cell.car = Qnil;
+  r->u.cell.cdr = Qnil;
 
   char *cp = NULL;
-  VALUE a;
 
   if(str != NULL)
     {
@@ -19,16 +20,8 @@ VALUE  make_atom(Type type, char *str)
 
   switch(type)
     {
-    case INT:
-      a = INT2FIX(atoi(cp));
-      free(cp);
-      return a;
-      break;
     case SYMBOL:
       r->u.symbol = cp;
-      break;
-    case NIL:
-      return Qnil;
       break;
     case CELL:
       break;
@@ -135,7 +128,7 @@ VALUE  eval(VALUE tree, VALUE env)
       v = assoc(tree, env);
       if (!NIL_P(v)) return CDR(v);
       fprintf(stderr, "Undefined symbol '%s'", SYMBOL_NAME(tree));
-      return make_atom(NIL, NULL);
+      return Qnil;
     }
 
   return apply(CAR(tree), CDR(tree), env);
@@ -150,7 +143,7 @@ VALUE apply(VALUE func, VALUE args, VALUE  env)
     {
       fprintf(stderr, "invalid application ");
       print_tree(cons(func, args));
-      return make_atom(NIL, NULL); 
+      return Qnil; 
     }
 
 
@@ -158,10 +151,10 @@ VALUE apply(VALUE func, VALUE args, VALUE  env)
   VALUE e = CAR(CDR(CDR(fbody)));
   
   VALUE lis = args;
-  VALUE eval_lis = make_atom(NIL, NULL);
+  VALUE eval_lis = Qnil;
   while(!NIL_P(lis))
     {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), make_atom(NIL, NULL)));
+      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
       lis = CDR(lis);
     }
   
@@ -176,10 +169,10 @@ VALUE quote(VALUE args, VALUE env)
 VALUE  procedure_car(VALUE args, VALUE env)
 {
   VALUE lis = args;
-  VALUE eval_lis = make_atom(NIL, NULL);
+  VALUE eval_lis = Qnil;
   while(!NIL_P(lis))
     {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), make_atom(NIL, NULL)));
+      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
       lis = CDR(lis);
     }
 
@@ -189,10 +182,10 @@ VALUE  procedure_car(VALUE args, VALUE env)
 VALUE  procedure_cdr(VALUE args, VALUE env)
 {
   VALUE lis = args;
-  VALUE eval_lis = make_atom(NIL, NULL);
+  VALUE eval_lis = Qnil;
   while(!NIL_P(lis))
     {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), make_atom(NIL, NULL)));
+      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
       lis = CDR(lis);
     }
 
@@ -321,10 +314,10 @@ VALUE mod(VALUE args, VALUE env)
 VALUE  procedure_cons(VALUE  args, VALUE env)
 {
   VALUE lis = args;
-  VALUE eval_lis = make_atom(NIL, NULL);
+  VALUE eval_lis = Qnil;
   while(!NIL_P(lis))
     {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), make_atom(NIL, NULL)));
+      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
       lis = CDR(lis);
     }
 
@@ -379,11 +372,11 @@ VALUE assoc(VALUE e, VALUE lis)
 
 VALUE  pairlis(VALUE keys, VALUE values)
 {
-  VALUE lis = make_atom(NIL, NULL);
+  VALUE lis = Qnil;
 
   while(!NIL_P(keys) && !NIL_P(values))
     {
-      lis = append(lis, cons(cons(CAR(keys), CAR(values)), make_atom(NIL, NULL)));
+      lis = append(lis, cons(cons(CAR(keys), CAR(values)), Qnil));
       keys = CDR(keys);
       values = CDR(values);
     }

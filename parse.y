@@ -39,12 +39,12 @@ s_expr
 : ATOM
 | '(' carpart ')' {$$ = $2;}
 | '(' carpart '.' s_expr ')' {$$ = append($2, $4);}
-| '(' ')' {$$ = make_atom(NIL, NULL);}
+| '(' ')' {$$ = Qnil;}
 ;
 
 carpart
-: s_expr {$$ = cons($1, make_atom(NIL, NULL));}
-| carpart s_expr {$$ = append($1, cons($2, make_atom(NIL, NULL)));}
+: s_expr {$$ = cons($1, Qnil);}
+| carpart s_expr {$$ = append($1, cons($2, Qnil));}
 ;
 
 %%
@@ -74,7 +74,7 @@ int yylex (YYSTYPE *lvalp)
       pushchar(&str, '\0');
       if(strlen(str.str) != 0)
 	{
-	  *lvalp = make_atom(INT, str.str);
+	  *lvalp = INT2FIX(atoi(str.str));
 	  unput(c);
 	  free(str.str);
 	  return ATOM;

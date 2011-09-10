@@ -29,8 +29,6 @@ typedef struct LVALUE_tag LVALUE;
 
 
 typedef enum Type_tag {
-  INT,
-  NIL,
   SYMBOL,
   CELL,
 } Type;
