@@ -1,29 +1,44 @@
 #ifndef _MYLISP_H_
 #define _MYLISP_H_
 
-#define CAR(e) (e->u.cell.car)
-#define CDR(e) (e->u.cell.cdr)
+#define CAR(e) (((LVALUE*) e)->u.cell.car)
+#define CDR(e) (((LVALUE*) e)->u.cell.cdr)
 
-#define NIL_P(e) (e->type == NIL)
-#define INT_P(e) (e->type == INT)
-#define SYMBOL_P(e) (e->type == SYMBOL)
-#define PAIR_P(e) (e->type == CELL)
+#define LTEST(v) (((VALUE)(v) & ~Qnil) != 0)
+#define NIL_P(v) ((VALUE)(v) == Qnil)
 
-#define SYMBOL_NAME(e) (e->u.symbol)
+#define FALSE_P(v)  ((VALUE)(v) == Qfalse)
+#define TRUE_P(v)  ((VALUE)(v) == Qtrue)
+#define SYMBOL_P(e) (((LVALUE*) e)->type == SYMBOL)
+#define PAIR_P(e) (((LVALUE*)e)->type == CELL)
+
+#define SYMBOL_NAME(e) (((LVALUE*)e)->u.symbol)
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
 
+#define Qfalse (VALUE)0
+#define Qtrue (VALUE)2
+#define Qnil (VALUE)4
+#define Qundef (VALUE)6
+
+#define FIXNUM_FLAG 0x01
+#define FIXNUM_P(f) (((int)(f))&FIXNUM_FLAG)
+#define INT2FIX(i) ((VALUE)(((int)(i))<<1 | FIXNUM_FLAG))
+#define RSHIFT(x,y) ((x)>>y)
+#define FIX2INT(x) RSHIFT((int)x,1)
+
+
 typedef enum Type_tag {
-  NIL,
   INT,
+  NIL,
   SYMBOL,
   CELL,
 } Type;
 
 typedef struct Cell_tag
 {
-  LVALUE *car;
-  LVALUE *cdr;
+  VALUE car;
+  VALUE cdr;
 } Cell;
 
 struct LVALUE_tag
@@ -31,20 +46,35 @@ struct LVALUE_tag
   Type type;
   union
   {
-    int integer;
     char *symbol;
     Cell cell;
   }u;
 };
 
 
-LVALUE* make_atom(Type, char*);
-LVALUE* cons(LVALUE*, LVALUE*);
-LVALUE* append(LVALUE*, LVALUE*);
-void print_tree(LVALUE*);
+VALUE make_atom(Type, char*);
+VALUE cons(VALUE, VALUE);
+VALUE append(VALUE, VALUE);
+void print_tree(VALUE);
 void prompt();
-LVALUE* eval(LVALUE*, LVALUE*);
-LVALUE* apply(LVALUE*, LVALUE*, LVALUE*);
-LVALUE* assoc(LVALUE*, LVALUE*);
-LVALUE* pairlis(LVALUE*, LVALUE*);
+VALUE eval(VALUE, VALUE);
+VALUE apply(VALUE, VALUE, VALUE);
+VALUE assoc(VALUE, VALUE);
+VALUE pairlis(VALUE, VALUE);
+
+VALUE procedure_car(VALUE, VALUE);
+VALUE procedure_cdr(VALUE, VALUE);
+VALUE procedure_cons(VALUE, VALUE);
+VALUE quote(VALUE, VALUE);
+VALUE eq(VALUE, VALUE);
+VALUE atom(VALUE, VALUE);
+VALUE add(VALUE, VALUE);
+VALUE sub(VALUE, VALUE);
+VALUE mul(VALUE, VALUE);
+VALUE divide(VALUE, VALUE);
+VALUE mod(VALUE, VALUE);
+VALUE cond(VALUE, VALUE);
+VALUE define(VALUE, VALUE);
+
+VALUE topenv;
 #endif /* _MYLISP_H_ */

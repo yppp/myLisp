@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include "myLisp.h"
 
-#define YYSTYPE LVALUE*
+#define YYSTYPE VALUE
 
   typedef struct Str_tag {
     char *str;
@@ -17,7 +17,6 @@
   void pushchar(Str* , int);
   int input();
   int unput(int);
-
 %}
 
 %token ATOM
@@ -27,9 +26,9 @@
 toplevel
 :
 | toplevel s_expr {
-  LVALUE *ex = $2;
+  VALUE ex = $2;
 
-  print_tree(eval(ex, make_atom(NIL, NULL)));
+  print_tree(eval(ex, topenv));
 
   puts("");
   prompt();
