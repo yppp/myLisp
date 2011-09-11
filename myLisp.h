@@ -11,7 +11,8 @@
 #define TRUE_P(v)  ((VALUE)(v) == Qtrue)
 #define SYMBOL_P(e) (((LVALUE*) e)->type == SYMBOL)
 #define PAIR_P(e) (((LVALUE*)e)->type == CELL)
-
+#define CLOSURE_P(e) (((LVALUE*)e)->type == CLOSURE)
+#define MACRO_P(e) (((LVALUE*)e)->type == MACRO)
 #define SYMBOL_NAME(e) (((LVALUE*)e)->u.symbol)
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
@@ -27,10 +28,15 @@ typedef struct LVALUE_tag LVALUE;
 #define RSHIFT(x,y) ((x)>>y)
 #define FIX2INT(x) RSHIFT((int)x,1)
 
+#define GETPARAMS(e) (((LVALUE*)e)->u.closure.params)
+#define GETE(v) (((LVALUE*)v)->u.closure.e)
 
+#define DIRECTVAL_P(e) (FALSE_P(e) || TRUE_P(e) || NIL_P(e) || FIXNUM_P(e))
 typedef enum Type_tag {
   SYMBOL,
   CELL,
+  CLOSURE,
+  MACRO
 } Type;
 
 typedef struct Cell_tag
@@ -39,6 +45,12 @@ typedef struct Cell_tag
   VALUE cdr;
 } Cell;
 
+typedef struct Closure_tag
+{
+  VALUE params;
+  VALUE e;
+} Closure;
+
 struct LVALUE_tag
 {
   Type type;
@@ -46,6 +58,7 @@ struct LVALUE_tag
   {
     char *symbol;
     Cell cell;
+    Closure closure;
   }u;
 };
 
@@ -73,6 +86,8 @@ VALUE divide(VALUE, VALUE);
 VALUE mod(VALUE, VALUE);
 VALUE cond(VALUE, VALUE);
 VALUE define(VALUE, VALUE);
+VALUE define_macro(VALUE, VALUE);
+VALUE lambda(VALUE, VALUE);
 
 VALUE topenv;
 #endif /* _MYLISP_H_ */

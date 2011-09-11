@@ -25,6 +25,10 @@ VALUE  make_atom(Type type, char *str)
       break;
     case CELL:
       break;
+    case CLOSURE:
+      break;
+    case MACRO:
+      break;
     }
   return (VALUE)r;
 }
@@ -67,6 +71,8 @@ void print_tree(VALUE tree)
   else if(TRUE_P(tree)) printf("#t");
   else if(FIXNUM_P(tree)) printf("%d", FIX2INT(tree));
   else if(SYMBOL_P(tree)) printf("%s", SYMBOL_NAME(tree));
+  else if(CLOSURE_P(tree)) printf("#<closure>");
+  else if(MACRO_P(tree)) printf("#<macro>");
   else if (PAIR_P(tree))
     {
       printf("(");
@@ -99,10 +105,10 @@ void prompt()
   printf("myLisp> ");
 }
 
-VALUE  eval(VALUE tree, VALUE env)
+VALUE eval(VALUE tree, VALUE env)
 {
   VALUE v;
-  if (NIL_P(tree) || FIXNUM_P(tree)) return tree;
+  if (DIRECTVAL_P(tree)) return tree;
   else if (PAIR_P(tree) && SYMBOL_P(CAR(tree))) 
     {
 
@@ -119,9 +125,10 @@ VALUE  eval(VALUE tree, VALUE env)
 
       /* special form */
       if(strcmp(SYMBOL_NAME(CAR(tree)), "cond") == 0) return cond(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "lambda") == 0) return tree;
+      if(strcmp(SYMBOL_NAME(CAR(tree)), "lambda") == 0) return lambda(CDR(tree), env);
       if(strcmp(SYMBOL_NAME(CAR(tree)), "quote") == 0) return quote(CDR(tree), env);
       if(strcmp(SYMBOL_NAME(CAR(tree)), "define") == 0) return define(CDR(tree), env);
+      if(strcmp(SYMBOL_NAME(CAR(tree)), "define-macro") == 0) return define_macro(CDR(tree), env);
     }
   else if (SYMBOL_P(tree))
     {
@@ -137,28 +144,39 @@ VALUE  eval(VALUE tree, VALUE env)
 VALUE apply(VALUE func, VALUE args, VALUE  env)
 {
   VALUE fbody = eval(func, env);
-  VALUE ftype = CAR(fbody);
-
-  if(!SYMBOL_P(ftype) || (SYMBOL_P(ftype) && strcmp(SYMBOL_NAME(ftype), "lambda") != 0))
+  
+  if(!DIRECTVAL_P(fbody))
     {
-      fprintf(stderr, "invalid application ");
-      print_tree(cons(func, args));
-      return Qnil; 
+      if(CLOSURE_P(fbody))
+	{
+
+	  VALUE params = GETPARAMS(fbody);
+	  VALUE e = GETE(fbody);
+  
+	  VALUE lis = args;
+	  VALUE eval_lis = Qnil;
+	  while(!NIL_P(lis))
+	    {
+	      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
+	      lis = CDR(lis);
+	    }
+  
+	  return eval(e, append(pairlis(params, eval_lis), env));
+	}
+      else if(MACRO_P(fbody))
+	{
+	  VALUE params = GETPARAMS(fbody);
+	  VALUE e = GETE(fbody);
+	  VALUE r = eval(e, append(pairlis(params, args), env));
+
+	  return eval(r, env);
+	}
     }
 
 
-  VALUE params = CAR(CDR(fbody));
-  VALUE e = CAR(CDR(CDR(fbody)));
-  
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
-  
-  return eval(e, append(pairlis(params, eval_lis), env));
+    fprintf(stderr, "invalid application ");
+    print_tree(cons(func, args));
+    return Qnil; 
 }
 
 VALUE quote(VALUE args, VALUE env)
@@ -353,11 +371,34 @@ VALUE cond(VALUE args, VALUE env)
 VALUE define(VALUE args, VALUE env)
 {
   while(!NIL_P(CDR(env))) env = CDR(env);
-  
 
-  CDR(env) = cons(cons(CAR(args), CAR(CDR(args))), Qnil);
+  CDR(env) = cons(cons(CAR(args), eval(CAR(CDR(args)), env)), Qnil);
 
   return CAR(args);
+}
+
+VALUE define_macro(VALUE args, VALUE env)
+{
+  LVALUE *macro = (LVALUE*) malloc(sizeof(LVALUE));
+  macro->type = MACRO;
+  GETPARAMS(macro) = CDR(CAR(args));
+  GETE(macro) = CAR(CDR(args));
+
+  while(!NIL_P(CDR(env))) env = CDR(env);
+
+  CDR(env) = cons(cons(CAR(CAR(args)), (VALUE)macro), Qnil);
+
+  return CAR(CAR(args));
+}
+
+VALUE lambda(VALUE args, VALUE env)
+{
+  LVALUE *lambda = (LVALUE*) malloc(sizeof(LVALUE));
+  lambda->type = CLOSURE;
+  GETPARAMS(lambda) = CAR(args);
+  GETE(lambda) = CAR(CDR(args));
+
+  return (VALUE)lambda;
 }
 
 VALUE assoc(VALUE e, VALUE lis)
@@ -370,12 +411,17 @@ VALUE assoc(VALUE e, VALUE lis)
   return Qnil;
 }
 
-VALUE  pairlis(VALUE keys, VALUE values)
+VALUE pairlis(VALUE keys, VALUE values)
 {
   VALUE lis = Qnil;
 
   while(!NIL_P(keys) && !NIL_P(values))
     {
+      if(SYMBOL_P(keys))
+	{
+	  lis = append(lis, cons(cons(keys, values), Qnil));
+	  break;
+	}
       lis = append(lis, cons(cons(CAR(keys), CAR(values)), Qnil));
       keys = CDR(keys);
       values = CDR(values);
