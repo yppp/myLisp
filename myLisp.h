@@ -17,16 +17,16 @@
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
 
-#define Qfalse (VALUE)0
-#define Qtrue (VALUE)2
-#define Qnil (VALUE)4
-#define Qundef (VALUE)6
+#define Qfalse ((VALUE)0)
+#define Qtrue ((VALUE)2)
+#define Qnil ((VALUE)4)
+#define Qundef ((VALUE)6)
 
 #define FIXNUM_FLAG 0x01
-#define FIXNUM_P(f) (((int)(f))&FIXNUM_FLAG)
-#define INT2FIX(i) ((VALUE)(((int)(i))<<1 | FIXNUM_FLAG))
+#define FIXNUM_P(f) (((long)(f)) & FIXNUM_FLAG)
+#define INT2FIX(i) ((VALUE)(((long)(i))<<1 | FIXNUM_FLAG))
 #define RSHIFT(x,y) ((x)>>y)
-#define FIX2INT(x) RSHIFT((int)x,1)
+#define FIX2INT(x) RSHIFT((long)x,1)
 
 #define GETPARAMS(e) (((LVALUE*)e)->u.closure.params)
 #define GETE(v) (((LVALUE*)v)->u.closure.e)
@@ -46,7 +46,7 @@ typedef enum Type_tag {
 
 typedef struct LBasic_tag
 {
-  int gc_mark;
+  long gc_mark;
   Type type;
 } LBasic;
 
@@ -120,7 +120,7 @@ VALUE topenv;
 LVALUE *freelist;
 struct
 {
-  int len;
+  long len;
   Heapslot *slots;
 } heap;
 

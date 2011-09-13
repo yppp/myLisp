@@ -15,7 +15,8 @@ LVALUE* make_obj()
 	  fprintf(stderr, "memory allocate error\n");
 	  exit(1);
 	}
-      for(i = HEAP_GROW; i > 0; i--)
+
+      for(i = HEAP_GROW; i >= 0; i--)
 	{
 	  for(j = 0; j < SLOT_SIZE; j++)
 	    {
@@ -148,7 +149,7 @@ void print_tree(VALUE tree)
   if(NIL_P(tree)) printf("()");
   else if(FALSE_P(tree)) printf("#f");
   else if(TRUE_P(tree)) printf("#t");
-  else if(FIXNUM_P(tree)) printf("%d", FIX2INT(tree));
+  else if(FIXNUM_P(tree)) printf("%ld", FIX2INT(tree));
   else if(SYMBOL_P(tree)) printf("%s", SYMBOL_NAME(tree));
   else if(CLOSURE_P(tree)) printf("#<closure>");
   else if(MACRO_P(tree)) printf("#<macro>");
@@ -325,7 +326,7 @@ VALUE add(VALUE args, VALUE env)
 {
   VALUE lis = args;
   VALUE evalret = Qnil;
-  int acc = 0;
+  long acc = 0;
 
   while(!NIL_P(lis))
     {
@@ -341,7 +342,7 @@ VALUE sub(VALUE args, VALUE env)
 {
   VALUE lis = args;
   VALUE evalret = Qnil;
-  int acc = 0;
+  long acc = 0;
 
   evalret = eval(CAR(lis), env);
   acc = FIXNUM_P(evalret) ? FIX2INT(evalret) : 0;
@@ -361,7 +362,7 @@ VALUE mul(VALUE args, VALUE env)
 {
   VALUE lis = args;
   VALUE evalret = Qnil;
-  int acc = 1;
+  long acc = 1;
 
   while(!NIL_P(lis))
     {
@@ -377,7 +378,7 @@ VALUE divide(VALUE args, VALUE env)
 {
   VALUE lis = args;
   VALUE evalret = Qnil;
-  int acc;
+  long acc;
 
   evalret = eval(CAR(lis), env);
   acc = FIXNUM_P(evalret) ? FIX2INT(evalret) : 0;
@@ -402,8 +403,8 @@ VALUE mod(VALUE args, VALUE env)
       eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
       lis = CDR(lis);
     }
-  int acc = FIX2INT(CAR(eval_lis));
-  int acct = FIX2INT(CAR(CDR(eval_lis)));
+  long acc = FIX2INT(CAR(eval_lis));
+  long acct = FIX2INT(CAR(CDR(eval_lis)));
 
   return INT2FIX(acc % acct);
 }
