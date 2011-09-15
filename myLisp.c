@@ -16,11 +16,11 @@ LVALUE* make_obj()
 	  exit(1);
 	}
 
-      for(i = HEAP_GROW; i >= 0; i--)
+      for(i = 0; i < HEAP_GROW; i++)
 	{
 	  for(j = 0; j < SLOT_SIZE; j++)
 	    {
-	      heap.slots[heap.len - i].values[j].u.basic.gc_mark = 1;
+	      heap.slots[(heap.len - HEAP_GROW) + i].values[j].u.basic.gc_mark = 1;
 	    }
 	}
       gc();
