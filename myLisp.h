@@ -13,7 +13,7 @@
 #define PAIR_P(e) (((LVALUE*)e)->u.basic.type == CELL)
 #define CLOSURE_P(e) (((LVALUE*)e)->u.basic.type == CLOSURE)
 #define MACRO_P(e) (((LVALUE*)e)->u.basic.type == MACRO)
-#define SYMBOL_NAME(e) (((LVALUE*)e)->u.symbol)
+#define SYMBOL_NAME(e) (((LVALUE*)e)->u.symbol.symbol)
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
 
@@ -33,8 +33,8 @@ typedef struct LVALUE_tag LVALUE;
 
 #define DIRECTVAL_P(e) (FALSE_P(e) || TRUE_P(e) || NIL_P(e) || FIXNUM_P(e))
 
-#define SLOT_SIZE 100
-#define HEAP_GROW 4
+#define SLOT_SIZE 1
+#define HEAP_GROW 1
 
 typedef enum Type_tag {
   FREE,
@@ -57,6 +57,12 @@ typedef struct Cell_tag
   VALUE cdr;
 } Cell;
 
+typedef struct Symbol_tag
+{
+  LBasic basic;
+  char *symbol;
+} Symbol;
+
 typedef struct Closure_tag
 {
   LBasic basic;
@@ -74,7 +80,7 @@ struct LVALUE_tag
       struct LVALUE_tag *next;
     } free;
     LBasic basic;
-    char *symbol;
+    Symbol symbol;
     Cell cell;
     Closure closure;
   }u;
@@ -86,11 +92,11 @@ typedef struct Heapslot_tag
 } Heapslot;
 
 
-LVALUE* make_obj();
-void gc();
+LVALUE* make_obj(VALUE);
+void gc(VALUE);
 void recursive_mark(LVALUE*);
 
-VALUE make_symbol(char*);
+VALUE make_symbol(char*,VALUE);
 VALUE cons(VALUE, VALUE);
 VALUE append(VALUE, VALUE);
 void print_tree(VALUE);
@@ -121,7 +127,7 @@ LVALUE *freelist;
 struct
 {
   long len;
-  Heapslot *slots;
+  Heapslot **slots;
 } heap;
 
 #endif /* _MYLISP_H_ */

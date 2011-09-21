@@ -90,7 +90,7 @@ int yylex (YYSTYPE *lvalp)
   pushchar(&str, '\0');
   if(strlen(str.str) != 0)
     {
-      *lvalp = make_symbol(str.str);
+      *lvalp = make_symbol(str.str, Qnil);
 
       unput(c);
       free(str.str);

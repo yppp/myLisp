@@ -2,15 +2,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-LVALUE* make_obj()
+LVALUE* make_obj(VALUE root)
 {
   int i,j;
   LVALUE *r;
+  LVALUE *lastfree = freelist;
+
   if(freelist == NULL)
     {
       heap.len += HEAP_GROW;
-      if((heap.slots = (Heapslot*)realloc(heap.slots, sizeof(Heapslot) * heap.len)) == NULL)
+      if((heap.slots = (Heapslot**)realloc(heap.slots, sizeof(Heapslot*) * heap.len)) == NULL)
 	{
 	  fprintf(stderr, "memory allocate error\n");
 	  exit(1);
@@ -18,31 +21,69 @@ LVALUE* make_obj()
 
       for(i = 0; i < HEAP_GROW; i++)
 	{
-	  for(j = 0; j < SLOT_SIZE; j++)
+	  if((heap.slots[(heap.len - HEAP_GROW) + i] = (Heapslot*)malloc(sizeof(Heapslot))) == NULL)
 	    {
-	      heap.slots[(heap.len - HEAP_GROW) + i].values[j].u.basic.gc_mark = 1;
+	      fprintf(stderr, "memory allocate error\n");
+	      exit(1);
 	    }
 	}
-      gc();
-    }
+      
+
+      for(i = 0; i < HEAP_GROW; i++)
+	{
+	  for(j = 0; j < SLOT_SIZE; j++)
+	    {
+	      heap.slots[(heap.len - HEAP_GROW) + i]->values[j].u.basic.type = FREE;
+	      heap.slots[(heap.len - HEAP_GROW) + i]->values[j].u.basic.gc_mark = 0;
+	      heap.slots[(heap.len - HEAP_GROW) + i]->values[j].u.free.next = NULL;
+	      if(freelist == NULL)
+		{
+		  freelist = (heap.slots[(heap.len - HEAP_GROW) + i]->values + j);
+		  lastfree = freelist;
+		}
+	      else
+		{
+		  lastfree->u.free.next = (heap.slots[(heap.len - HEAP_GROW) + i]->values + j);
+		  lastfree = lastfree->u.free.next;
+		}
+	    }
+	}
+      
+      if(!NIL_P(root))
+ 	{
+       	  gc(root);  
+	}  
+     }
 
   r = freelist;
   freelist = freelist->u.free.next;
 
+  assert(r->u.basic.type == FREE);
   return r;
 }
 
-void gc()
+void gc(VALUE root)
 {
   int i,j;
   LVALUE *slot;
   LVALUE *lastfree;
   LVALUE *tmpenv;
-  for(tmpenv = (LVALUE*)topenv; !NIL_P(tmpenv); tmpenv = (LVALUE*)CDR(tmpenv))
-    {
-      if(!DIRECTVAL_P(CDR(CAR(tmpenv)))) recursive_mark((LVALUE*)CDR(CAR(tmpenv)));
-    }
 
+  for(tmpenv = (LVALUE*)root; !NIL_P(tmpenv); tmpenv = (LVALUE*)CDR(tmpenv))
+    {
+      printf("mark!\n");
+      for(i = 0; i < heap.len; i++)
+	{
+	  for(j = 0; j < SLOT_SIZE; j++)
+	    {
+	      heap.slots[i]->values[j].u.basic.gc_mark = 0;
+	      printf("%d ",heap.slots[i]->values[j].u.basic.type);
+	    }
+	  puts("");
+	}
+
+      recursive_mark((LVALUE*)CAR(tmpenv));
+    }
 
   if(freelist == NULL)
     {
@@ -57,11 +98,10 @@ void gc()
     {
       for(j = 0; j < SLOT_SIZE; j++)
 	{
-	  slot = (heap.slots[i].values) + j;
-	  if(slot->u.basic.gc_mark == 1)
+	  slot = (heap.slots[i]->values) + j;
+	  if(slot->u.basic.gc_mark == 0)
 	    {
-	      if(SYMBOL_P(slot)) free(slot->u.symbol);
-	      slot->u.basic.gc_mark = 0;
+	      if(SYMBOL_P(slot)) free(slot->u.symbol.symbol);
 	      slot->u.basic.type = FREE;
 	      if(lastfree == NULL)
 		{
@@ -74,6 +114,10 @@ void gc()
 		  lastfree = slot;
 		}
 	    }
+	  else
+	    {
+	      slot->u.basic.gc_mark = 0;
+	    }
 	}
     }
 }
@@ -84,20 +128,27 @@ void recursive_mark(LVALUE *v)
 
   v->u.basic.gc_mark = 1;
 
-  if(SYMBOL_P(v) || CLOSURE_P(v) || MACRO_P(v)) return;
+  if(SYMBOL_P(v)) return;
+  else if(CLOSURE_P(v) || MACRO_P(v))
+    {
+      recursive_mark((LVALUE*)v->u.closure.params);
+      recursive_mark((LVALUE*)v->u.closure.e);
+      return;
+    }
   else if(PAIR_P(v))
     {
       recursive_mark((LVALUE*)CAR(v));
       recursive_mark((LVALUE*)CDR(v));
+      return;
     }
   
   fprintf(stderr, "recursive mark error\n");
   exit(1);
 }
 
-VALUE make_symbol(char *str)
+VALUE make_symbol(char *str, VALUE env)
 {
-  LVALUE *r = make_obj();
+  LVALUE *r = make_obj(env);
   r->u.basic.type = SYMBOL;
 
   char *cp = NULL;
@@ -107,14 +158,15 @@ VALUE make_symbol(char *str)
       cp = (char*)malloc (sizeof(char) * (strlen(str) + 1));
       strcpy(cp, str);
     }
-  r->u.symbol = cp;
+  r->u.symbol.symbol = cp;
 
+  assert(r->u.symbol.symbol != NULL);
   return (VALUE)r;
 }
 
 VALUE cons(VALUE car, VALUE cdr)
 {
-  LVALUE *cell = make_obj();
+  LVALUE *cell = make_obj(Qnil);
   cell->u.basic.type = CELL;
   CAR(cell) = car;
   CDR(cell) = cdr;
@@ -465,7 +517,7 @@ VALUE define(VALUE args, VALUE env)
 
 VALUE define_macro(VALUE args, VALUE env)
 {
-  LVALUE *macro = make_obj();
+  LVALUE *macro = make_obj(env);
   macro->u.basic.type = MACRO;
   GETPARAMS(macro) = CDR(CAR(args));
   GETE(macro) = CAR(CDR(args));
@@ -487,7 +539,7 @@ VALUE define_macro(VALUE args, VALUE env)
 
 VALUE lambda(VALUE args, VALUE env)
 {
-  LVALUE *lambda = make_obj();
+  LVALUE *lambda = make_obj(env);
   lambda->u.basic.type = CLOSURE;
   GETPARAMS(lambda) = CAR(args);
   GETE(lambda) = CAR(CDR(args));
