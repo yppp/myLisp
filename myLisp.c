@@ -66,33 +66,19 @@ void gc(VALUE root)
 {
   int i,j;
   LVALUE *slot;
-  LVALUE *lastfree;
-  LVALUE *tmpenv;
+  LVALUE *lastfree = NULL;
+  
+  freelist = NULL;
 
-  for(tmpenv = (LVALUE*)root; !NIL_P(tmpenv); tmpenv = (LVALUE*)CDR(tmpenv))
+  for(i = 0; i < heap.len; i++)
     {
-      printf("mark!\n");
-      for(i = 0; i < heap.len; i++)
+      for(j = 0; j < SLOT_SIZE; j++)
 	{
-	  for(j = 0; j < SLOT_SIZE; j++)
-	    {
-	      heap.slots[i]->values[j].u.basic.gc_mark = 0;
-	      printf("%d ",heap.slots[i]->values[j].u.basic.type);
-	    }
-	  puts("");
+	  heap.slots[i]->values[j].u.basic.gc_mark = 0;
 	}
-
-      recursive_mark((LVALUE*)CAR(tmpenv));
     }
 
-  if(freelist == NULL)
-    {
-      lastfree = NULL;
-    }
-  else
-    {
-      for(lastfree = freelist; lastfree->u.free.next != NULL; lastfree = lastfree->u.free.next);
-    }
+  recursive_mark((LVALUE*)root);
 
   for(i = 0; i < heap.len; i++)
     {
