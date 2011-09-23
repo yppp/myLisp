@@ -1,6 +1,11 @@
 #ifndef _MYLISP_H_
 #define _MYLISP_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <assert.h>
+
 #define CAR(e) (((LVALUE*) e)->u.cell.car)
 #define CDR(e) (((LVALUE*) e)->u.cell.cdr)
 
@@ -96,7 +101,6 @@ LVALUE* make_obj(VALUE);
 void gc(VALUE);
 void recursive_mark(LVALUE*);
 
-VALUE make_symbol(char*,VALUE);
 VALUE cons(VALUE, VALUE);
 VALUE append(VALUE, VALUE);
 void print_tree(VALUE);

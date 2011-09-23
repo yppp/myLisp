@@ -2,9 +2,9 @@ YACC = bison
 CC = gcc
 CFLAGS = -g -O0 -Wall -std=c89
 
-a.out: parse.y myLisp.c myLisp.h
+a.out: parse.y myLisp.c myLisp.h gc.c eval.c
 	$(YACC) parse.y
-	$(CC) $(CFLAGS) myLisp.c parse.tab.c 
+	$(CC) $(CFLAGS) myLisp.c parse.tab.c gc.c eval.c 
 
 .PHONY: run debug clean	
 run: 

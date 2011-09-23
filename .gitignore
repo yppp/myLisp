@@ -19,3 +19,7 @@
 auto-save-list
 tramp
 .\#*
+
+parse.tab.c
+.cccc
+a.out
