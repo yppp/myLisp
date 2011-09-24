@@ -6,11 +6,10 @@ LVALUE* make_obj(VALUE root)
   LVALUE *r;
   LVALUE *lastfree = freelist;
 
-
   if((!NIL_P(root)) && (freelist == NULL))
     {
-      gc(root);  
-    }  
+      gc(root);
+    }
 
   if(freelist == NULL)
     {
@@ -59,6 +58,24 @@ LVALUE* make_obj(VALUE root)
   return r;
 }
 
+VALUE make_symbol(char *str, VALUE env)
+{
+  LVALUE *r = make_obj(env);
+  r->u.basic.type = SYMBOL;
+
+  char *cp = NULL;
+
+  if(str != NULL)
+    {
+      cp = (char*)malloc (sizeof(char) * (strlen(str) + 1));
+      strcpy(cp, str);
+    }
+  r->u.symbol.symbol = cp;
+
+  assert(r->u.symbol.symbol != NULL);
+  return (VALUE)r;
+}
+
 void gc(VALUE root)
 {
   int i,j;
@@ -73,7 +90,7 @@ void gc(VALUE root)
     {
       for(j = 0; j < SLOT_SIZE; j++)
 	{
-	  slot = (heap.slots[i]->values) + j;
+	  slot =( heap.slots[i]->values) + j;
 	  if(slot->u.basic.gc_mark == 0)
 	    {
 	      if(SYMBOL_P(slot)) free(slot->u.symbol.symbol);
@@ -103,7 +120,7 @@ void recursive_mark(LVALUE *v)
 
   v->u.basic.gc_mark = 1;
 
-  if(SYMBOL_P(v)) return;
+  if(SYMBOL_P(v) || NATIVE_PROCEDURE_P(v)) return;
   else if(CLOSURE_P(v) || MACRO_P(v))
     {
       recursive_mark((LVALUE*)v->u.closure.params);

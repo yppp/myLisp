@@ -17,7 +17,7 @@
   void pushchar(Str* , int);
   int input();
   int unput(int);
-  VALUE make_symbol(char*, VALUE);
+
 %}
 
 %token ATOM
@@ -124,22 +124,4 @@ void pushchar(Str *str, int c)
   str->len++;
   str->str = (char*)realloc(str->str, sizeof(char) * str->len);
   str->str[str->len - 1] = (char)c;
-}
-
-VALUE make_symbol(char *str, VALUE env)
-{
-  LVALUE *r = make_obj(env);
-  r->u.basic.type = SYMBOL;
-
-  char *cp = NULL;
-
-  if(str != NULL)
-    {
-      cp = (char*)malloc (sizeof(char) * (strlen(str) + 1));
-      strcpy(cp, str);
-    }
-  r->u.symbol.symbol = cp;
-
-  assert(r->u.symbol.symbol != NULL);
-  return (VALUE)r;
 }

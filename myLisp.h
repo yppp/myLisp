@@ -18,6 +18,7 @@
 #define PAIR_P(e) (((LVALUE*)e)->u.basic.type == CELL)
 #define CLOSURE_P(e) (((LVALUE*)e)->u.basic.type == CLOSURE)
 #define MACRO_P(e) (((LVALUE*)e)->u.basic.type == MACRO)
+#define NATIVE_PROCEDURE_P(e) (((LVALUE*)e)->u.basic.type == NATIVE_PROCEDURE)
 #define SYMBOL_NAME(e) (((LVALUE*)e)->u.symbol.symbol)
 typedef unsigned long VALUE;
 typedef struct LVALUE_tag LVALUE;
@@ -41,12 +42,16 @@ typedef struct LVALUE_tag LVALUE;
 #define SLOT_SIZE 1
 #define HEAP_GROW 1
 
+#define NELEMS(arr) (sizeof(arr) / sizeof(arr[0]))
+typedef VALUE (*Subr)(VALUE, VALUE);
+
 typedef enum Type_tag {
   FREE,
   SYMBOL,
   CELL,
   CLOSURE,
-  MACRO
+  MACRO,
+  NATIVE_PROCEDURE
 } Type;
 
 typedef struct LBasic_tag
@@ -75,6 +80,12 @@ typedef struct Closure_tag
   VALUE e;
 } Closure;
 
+typedef struct Native_tag
+{
+  LBasic basic;
+  Subr proc;
+} Native;
+
 struct LVALUE_tag
 {
   union
@@ -88,6 +99,7 @@ struct LVALUE_tag
     Symbol symbol;
     Cell cell;
     Closure closure;
+    Native native;
   }u;
 };
 
@@ -125,6 +137,8 @@ VALUE cond(VALUE, VALUE);
 VALUE define(VALUE, VALUE);
 VALUE define_macro(VALUE, VALUE);
 VALUE lambda(VALUE, VALUE);
+void defsubr(char*, Subr);
+VALUE make_symbol(char*, VALUE);
 
 VALUE topenv;
 LVALUE *freelist;

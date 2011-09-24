@@ -2,7 +2,7 @@
 
 VALUE cons(VALUE car, VALUE cdr)
 {
-  LVALUE *cell = make_obj(Qnil);
+  LVALUE *cell = make_obj(env);
   cell->u.basic.type = CELL;
   CAR(cell) = car;
   CDR(cell) = cdr;
@@ -22,10 +22,21 @@ VALUE append(VALUE lis, VALUE a)
 
 int main(void)
 {
+  int i;
   extern int yyparse();
   topenv = Qnil;
   freelist = NULL;
+
+  static Subr subrs[] = {procedure_car, procedure_cdr, procedure_cons, eq, atom, add, sub, mul, divide, mod, cond, lambda, quote, define, define_macro};
   
+  static char* subrnames[] = {"car", "cdr", "cons", "eq", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
+
+
+  for(i = 0; i < NELEMS(subrs); i++)
+    {
+      defsubr(subrnames[i], subrs[i]);
+    }
+
   prompt();
   while(yyparse());
 
@@ -41,6 +52,7 @@ void print_tree(VALUE tree)
   else if(SYMBOL_P(tree)) printf("%s", SYMBOL_NAME(tree));
   else if(CLOSURE_P(tree)) printf("#<closure>");
   else if(MACRO_P(tree)) printf("#<macro>");
+  else if(NATIVE_PROCEDURE_P(tree)) printf("#<subr>");
   else if (PAIR_P(tree))
     {
       printf("(");
@@ -50,7 +62,7 @@ void print_tree(VALUE tree)
 	  tree = CDR(tree);
 	  if(NIL_P(tree)) break;
 	  
-	  if(DIRECTVAL_P(tree) || SYMBOL_P(tree) || CLOSURE_P(tree) || MACRO_P(tree))
+	  if(DIRECTVAL_P(tree) || SYMBOL_P(tree) || CLOSURE_P(tree) || MACRO_P(tree) || NATIVE_PROCEDURE_P(tree))
 	    {
 	      printf(" . ");
 	      print_tree(tree);
@@ -106,4 +118,23 @@ VALUE pairlis(VALUE keys, VALUE values)
     }
 
   return lis;
+}
+
+
+void defsubr(char *name, Subr pf)
+{
+  VALUE v = make_symbol(name, Qnil);
+
+  VALUE f = (VALUE)make_obj(Qnil);
+  ((LVALUE*)f)->u.basic.type = NATIVE_PROCEDURE;
+  ((LVALUE*)f)->u.native.proc = pf;
+
+  if(NIL_P(topenv))
+    {
+      topenv = cons(cons(v, f), Qnil);
+    }
+  else
+    {
+      topenv = append(cons(cons(v, f), Qnil), topenv);
+    }
 }

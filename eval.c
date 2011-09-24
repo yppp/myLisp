@@ -4,27 +4,6 @@ VALUE eval(VALUE tree, VALUE env)
 {
   VALUE v;
   if (DIRECTVAL_P(tree)) return tree;
-  else if (PAIR_P(tree) && SYMBOL_P(CAR(tree))) 
-    {
-
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "car") == 0) return procedure_car(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "cdr") == 0) return procedure_cdr(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "cons") == 0) return procedure_cons(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "eq") == 0) return eq(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "atom") == 0) return atom(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "+") == 0) return add(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "-") == 0) return sub(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "*") == 0) return mul(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "/") == 0) return divide(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "%") == 0) return mod(CDR(tree), env);
-
-      /* special form */
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "cond") == 0) return cond(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "lambda") == 0) return lambda(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "quote") == 0) return quote(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "define") == 0) return define(CDR(tree), env);
-      if(strcmp(SYMBOL_NAME(CAR(tree)), "define-macro") == 0) return define_macro(CDR(tree), env);
-    }
   else if (SYMBOL_P(tree))
     {
       v = assoc(tree, env);
@@ -36,7 +15,7 @@ VALUE eval(VALUE tree, VALUE env)
   return apply(CAR(tree), CDR(tree), env);
 }
 
-VALUE apply(VALUE func, VALUE args, VALUE  env)
+VALUE apply(VALUE func, VALUE args, VALUE env)
 {
   VALUE fbody = eval(func, env);
   
@@ -44,10 +23,8 @@ VALUE apply(VALUE func, VALUE args, VALUE  env)
     {
       if(CLOSURE_P(fbody))
 	{
-
 	  VALUE params = GETPARAMS(fbody);
 	  VALUE e = GETE(fbody);
-
   
 	  VALUE lis = args;
 	  VALUE eval_lis = Qnil;
@@ -66,6 +43,10 @@ VALUE apply(VALUE func, VALUE args, VALUE  env)
 	  VALUE r = eval(e, append(pairlis(params, args), env));
 
 	  return eval(r, env);
+	}
+      else if(NATIVE_PROCEDURE_P(fbody))
+	{
+	  return ((LVALUE*)fbody)->u.native.proc(args, env);
 	}
     }
 
@@ -280,7 +261,7 @@ VALUE define(VALUE args, VALUE env)
 
 VALUE define_macro(VALUE args, VALUE env)
 {
-  LVALUE *macro = make_obj(env);
+  LVALUE *macro = make_obj(Qnil);
   macro->u.basic.type = MACRO;
   GETPARAMS(macro) = CDR(CAR(args));
   GETE(macro) = CAR(CDR(args));
@@ -296,13 +277,13 @@ VALUE define_macro(VALUE args, VALUE env)
 
       topenv = append(cons(cons(CAR(CAR(args)), (VALUE)macro), Qnil), topenv);
     }
-  print_tree(env);
+
   return CAR(CAR(args));
 }
 
 VALUE lambda(VALUE args, VALUE env)
 {
-  LVALUE *lambda = make_obj(env);
+  LVALUE *lambda = make_obj(Qnil);
   lambda->u.basic.type = CLOSURE;
   GETPARAMS(lambda) = CAR(args);
   GETE(lambda) = CAR(CDR(args));
