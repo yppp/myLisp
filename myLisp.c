@@ -2,7 +2,7 @@
 
 VALUE cons(VALUE car, VALUE cdr)
 {
-  LVALUE *cell = make_obj(env);
+  LVALUE *cell = make_obj(Qnil);
   cell->u.basic.type = CELL;
   CAR(cell) = car;
   CDR(cell) = cdr;

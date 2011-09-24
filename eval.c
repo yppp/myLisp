@@ -3,7 +3,7 @@
 VALUE eval(VALUE tree, VALUE env)
 {
   VALUE v;
-  if (DIRECTVAL_P(tree)) return tree;
+  if (DIRECTVAL_P(tree) || CLOSURE_P(tree) || MACRO_P(tree) || NATIVE_PROCEDURE_P(tree)) return tree;
   else if (SYMBOL_P(tree))
     {
       v = assoc(tree, env);
@@ -206,10 +206,11 @@ VALUE mod(VALUE args, VALUE env)
 }
 
 
-VALUE  procedure_cons(VALUE  args, VALUE env)
+VALUE  procedure_cons(VALUE args, VALUE env)
 {
   VALUE lis = args;
   VALUE eval_lis = Qnil;
+
   while(!NIL_P(lis))
     {
       eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
