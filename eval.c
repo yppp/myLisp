@@ -9,6 +9,7 @@ VALUE eval(VALUE tree, VALUE env)
       v = assoc(tree, env);
       if (!NIL_P(v)) return CDR(v);
       fprintf(stderr, "Undefined symbol '%s'", SYMBOL_NAME(tree));
+      exit(1);
       return Qnil;
     }
 
@@ -47,6 +48,7 @@ VALUE apply(VALUE func, VALUE args, VALUE env)
 
     fprintf(stderr, "invalid application ");
     print_tree(cons(func, args));
+    exit(1);
     return Qnil; 
 }
 
