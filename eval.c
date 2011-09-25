@@ -26,13 +26,7 @@ VALUE apply(VALUE func, VALUE args, VALUE env)
 	  VALUE params = GETPARAMS(fbody);
 	  VALUE e = GETE(fbody);
   
-	  VALUE lis = args;
-	  VALUE eval_lis = Qnil;
-	  while(!NIL_P(lis))
-	    {
-	      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-	      lis = CDR(lis);
-	    }
+	  VALUE eval_lis = evlis(args, env);
   
 	  return eval(e, append(pairlis(params, eval_lis), env));
 	}
@@ -63,26 +57,14 @@ VALUE quote(VALUE args, VALUE env)
 
 VALUE  procedure_car(VALUE args, VALUE env)
 {
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
+  VALUE eval_lis = evlis(args, env);
 
   return CAR(CAR(eval_lis));
 }
 
 VALUE  procedure_cdr(VALUE args, VALUE env)
 {
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
+  VALUE eval_lis = evlis(args, env);
 
   return CDR(CAR(eval_lis));
 }
@@ -90,26 +72,14 @@ VALUE  procedure_cdr(VALUE args, VALUE env)
 
 VALUE eq(VALUE args, VALUE env)
 {
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
+  VALUE eval_lis = evlis(args, env);
 
   return (CAR(eval_lis) == CAR(CDR(eval_lis))) ? Qtrue : Qfalse;
 }
 
 VALUE atom(VALUE args, VALUE env)
 {
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
+  VALUE eval_lis = evlis(args, env);
 
   return FIXNUM_P(CAR(eval_lis))
     || NIL_P(CAR(eval_lis))
@@ -192,13 +162,7 @@ VALUE divide(VALUE args, VALUE env)
 
 VALUE mod(VALUE args, VALUE env)
 {
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
+  VALUE eval_lis = evlis(args, env);
   long acc = FIX2INT(CAR(eval_lis));
   long acct = FIX2INT(CAR(CDR(eval_lis)));
 
@@ -208,14 +172,7 @@ VALUE mod(VALUE args, VALUE env)
 
 VALUE  procedure_cons(VALUE args, VALUE env)
 {
-  VALUE lis = args;
-  VALUE eval_lis = Qnil;
-
-  while(!NIL_P(lis))
-    {
-      eval_lis = append(eval_lis, cons(eval(CAR(lis), env), Qnil));
-      lis = CDR(lis);
-    }
+  VALUE eval_lis = evlis(args, env);
 
   return cons(CAR(eval_lis), CAR(CDR(eval_lis)));
 }
@@ -290,4 +247,16 @@ VALUE lambda(VALUE args, VALUE env)
   GETE(lambda) = CAR(CDR(args));
 
   return (VALUE)lambda;
+}
+
+VALUE evlis(VALUE list, VALUE env)
+{
+  VALUE values = Qnil;
+
+  while (!NIL_P(list))
+    {
+      values = append(values, cons(eval(CAR(list), env), Qnil));
+      list = CDR(list);
+    }
+  return values;
 }

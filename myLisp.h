@@ -139,6 +139,7 @@ VALUE define_macro(VALUE, VALUE);
 VALUE lambda(VALUE, VALUE);
 void defsubr(char*, Subr);
 VALUE make_symbol(char*, VALUE);
+VALUE evlis(VALUE, VALUE);
 
 VALUE topenv;
 LVALUE *freelist;
