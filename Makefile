@@ -1,6 +1,6 @@
 YACC = bison
 CC = gcc
-CFLAGS = -g -O0 -Wall -std=c89
+CFLAGS = -g -O0 -Wall -Wextra -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wconversion -Wfloat-equal -Wpointer-arith -std=c89
 
 a.out: parse.y myLisp.c myLisp.h gc.c eval.c
 	$(YACC) parse.y

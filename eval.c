@@ -175,8 +175,13 @@ VALUE mod(VALUE args, VALUE env)
 VALUE  procedure_cons(VALUE args, VALUE env)
 {
   VALUE eval_lis = evlis(args, env);
+  VALUE concon = (VALUE)make_obj(cons(args,env));
 
-  return cons(CAR(eval_lis), CAR(CDR(eval_lis)));
+  ((LVALUE*)concon)->u.basic.type = CELL;
+  ((LVALUE*)concon)->u.cell.car = CAR(eval_lis);
+  ((LVALUE*)concon)->u.cell.cdr = CAR(CDR(eval_lis));
+
+  return concon;
 }
 
 VALUE cond(VALUE args, VALUE env)

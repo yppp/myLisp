@@ -29,10 +29,10 @@ int main(void)
 
   static Subr subrs[] = {procedure_car, procedure_cdr, procedure_cons, eq, atom, add, sub, mul, divide, mod, cond, lambda, quote, define, define_macro};
   
-  static char* subrnames[] = {"car", "cdr", "cons", "eq", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
+  static const char* subrnames[] = {"car", "cdr", "cons", "eq", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
 
 
-  for(i = 0; i < NELEMS(subrs); i++)
+  for(i = 0; i < (int)NELEMS(subrs); i++)
     {
       defsubr(subrnames[i], subrs[i]);
     }
