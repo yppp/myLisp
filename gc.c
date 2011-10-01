@@ -4,7 +4,7 @@ LVALUE* make_obj(VALUE root)
 {
   int i,j;
   LVALUE *r;
-  LVALUE *lastfree = freelist;
+  LVALUE *lastfree = NULL;
 
   if((!NIL_P(root)) && (freelist == NULL))
     {
@@ -13,6 +13,7 @@ LVALUE* make_obj(VALUE root)
 
   if(freelist == NULL)
     {
+      lastfree = NULL;
       heap.len += HEAP_GROW;
       if((heap.slots = (Heapslot**)realloc(heap.slots, sizeof(Heapslot*) * heap.len)) == NULL)
 	{
@@ -58,7 +59,7 @@ LVALUE* make_obj(VALUE root)
   return r;
 }
 
-VALUE make_symbol(char *str, VALUE env)
+VALUE make_symbol(const char *str, VALUE env)
 {
   LVALUE *r = make_obj(env);
   r->u.basic.type = SYMBOL;
@@ -90,11 +91,12 @@ void gc(VALUE root)
     {
       for(j = 0; j < SLOT_SIZE; j++)
 	{
-	  slot =( heap.slots[i]->values) + j;
+	  slot = (heap.slots[i]->values) + j;
 	  if(slot->u.basic.gc_mark == 0)
 	    {
 	      if(SYMBOL_P(slot)) free(slot->u.symbol.symbol);
 	      slot->u.basic.type = FREE;
+	      slot->u.free.next = NULL;
 	      if(lastfree == NULL)
 		{
 		  freelist = slot;
@@ -106,10 +108,8 @@ void gc(VALUE root)
 		  lastfree = slot;
 		}
 	    }
-	  else
-	    {
-	      slot->u.basic.gc_mark = 0;
-	    }
+
+	  slot->u.basic.gc_mark = 0;
 	}
     }
 }

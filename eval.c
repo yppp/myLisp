@@ -54,6 +54,7 @@ VALUE apply(VALUE func, VALUE args, VALUE env)
 
 VALUE quote(VALUE args, VALUE env)
 {
+  (void)env;
   return CAR(args);
 }
 
@@ -174,8 +175,8 @@ VALUE mod(VALUE args, VALUE env)
 
 VALUE  procedure_cons(VALUE args, VALUE env)
 {
+  VALUE concon = (VALUE)make_obj(env);
   VALUE eval_lis = evlis(args, env);
-  VALUE concon = (VALUE)make_obj(cons(args,env));
 
   ((LVALUE*)concon)->u.basic.type = CELL;
   ((LVALUE*)concon)->u.cell.car = CAR(eval_lis);
@@ -226,7 +227,7 @@ VALUE define(VALUE args, VALUE env)
 
 VALUE define_macro(VALUE args, VALUE env)
 {
-  LVALUE *macro = make_obj(Qnil);
+  LVALUE *macro = make_obj(env);
   macro->u.basic.type = MACRO;
   GETPARAMS(macro) = CDR(CAR(args));
   GETE(macro) = CAR(CDR(args));
@@ -248,7 +249,7 @@ VALUE define_macro(VALUE args, VALUE env)
 
 VALUE lambda(VALUE args, VALUE env)
 {
-  LVALUE *lambda = make_obj(Qnil);
+  LVALUE *lambda = make_obj(env);
   lambda->u.basic.type = CLOSURE;
   GETPARAMS(lambda) = CAR(args);
   GETE(lambda) = CAR(CDR(args));

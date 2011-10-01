@@ -42,7 +42,7 @@ typedef struct LVALUE_tag LVALUE;
 #define SLOT_SIZE 1
 #define HEAP_GROW 1
 
-#define NELEMS(arr) (sizeof(arr) / sizeof(arr[0]))
+#define NELEMS(arr) ((int)(sizeof(arr) / sizeof(arr[0])))
 typedef VALUE (*Subr)(VALUE, VALUE);
 
 typedef enum Type_tag {
@@ -137,8 +137,8 @@ VALUE cond(VALUE, VALUE);
 VALUE define(VALUE, VALUE);
 VALUE define_macro(VALUE, VALUE);
 VALUE lambda(VALUE, VALUE);
-void defsubr(char*, Subr);
-VALUE make_symbol(char*, VALUE);
+void defsubr(const char*, Subr);
+VALUE make_symbol(const char*, VALUE);
 VALUE evlis(VALUE, VALUE);
 
 VALUE topenv;

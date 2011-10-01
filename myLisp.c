@@ -32,7 +32,7 @@ int main(void)
   static const char* subrnames[] = {"car", "cdr", "cons", "eq", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
 
 
-  for(i = 0; i < (int)NELEMS(subrs); i++)
+  for(i = 0; i < NELEMS(subrs); i++)
     {
       defsubr(subrnames[i], subrs[i]);
     }
@@ -121,7 +121,7 @@ VALUE pairlis(VALUE keys, VALUE values)
 }
 
 
-void defsubr(char *name, Subr pf)
+void defsubr(const char *name, Subr pf)
 {
   VALUE v = make_symbol(name, Qnil);
 

@@ -29,7 +29,7 @@ toplevel
 | toplevel s_expr {
   VALUE ex = $2;
 
-  print_tree(eval(ex, topenv));
+  print_tree(eval(ex, append(cons(cons(make_symbol("ast", Qnil), ex), Qnil), topenv)));
 
   puts("");
   prompt();
