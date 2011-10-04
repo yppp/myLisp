@@ -30,9 +30,9 @@ int main(void)
   envstack.envs = NULL;
   envstack.len = 0;
 
-  static Subr subrs[] = {procedure_car, procedure_cdr, procedure_cons, eq, atom, add, sub, mul, divide, mod, cond, lambda, quote, define, define_macro};
+  static Subr subrs[] = {procedure_car, procedure_cdr, procedure_cons, eq, atom, add, sub, mul, divide, mod, cond, lambda, quote, define, define_macro, set};
   
-  static const char* subrnames[] = {"car", "cdr", "cons", "=", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
+  static const char* subrnames[] = {"car", "cdr", "cons", "=", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro", "set!"};
 
 
   for(i = 0; i < NELEMS(subrs); i++)

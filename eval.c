@@ -264,6 +264,23 @@ VALUE lambda(VALUE args, VALUE env)
   return (VALUE)lambda;
 }
 
+VALUE set(VALUE args, VALUE env)
+{
+  VALUE eval_lis = evlis(args, env);
+  VALUE f = assoc(CAR(args), env);
+
+
+  if(NIL_P(f))
+    {
+      fprintf(stderr, "symbol not defined");
+      exit(1);
+    }
+
+  CDR(f) = CAR(CDR(eval_lis));
+
+  return eval(CAR(f), env);
+}
+
 VALUE evlis(VALUE list, VALUE env)
 {
   VALUE values = Qnil;

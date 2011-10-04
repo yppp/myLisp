@@ -139,6 +139,7 @@ VALUE cond(VALUE, VALUE);
 VALUE define(VALUE, VALUE);
 VALUE define_macro(VALUE, VALUE);
 VALUE lambda(VALUE, VALUE);
+VALUE set(VALUE, VALUE);
 void defsubr(const char*, Subr);
 VALUE make_symbol(const char*, VALUE);
 VALUE evlis(VALUE, VALUE);
