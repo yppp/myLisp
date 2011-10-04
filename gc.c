@@ -87,6 +87,11 @@ void gc(VALUE root)
 
   recursive_mark((LVALUE*)root);
 
+  for(i = 0; i < envstack.len; i++)
+    {
+      recursive_mark((LVALUE*)envstack.envs[i]);
+    }
+
   for(i = 0; i < heap.len; i++)
     {
       for(j = 0; j < SLOT_SIZE; j++)
@@ -125,6 +130,7 @@ void recursive_mark(LVALUE *v)
     {
       recursive_mark((LVALUE*)v->u.closure.params);
       recursive_mark((LVALUE*)v->u.closure.e);
+      recursive_mark((LVALUE*)v->u.closure.env);
       return;
     }
   else if(PAIR_P(v))

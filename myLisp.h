@@ -36,6 +36,7 @@ typedef struct LVALUE_tag LVALUE;
 
 #define GETPARAMS(e) (((LVALUE*)e)->u.closure.params)
 #define GETE(v) (((LVALUE*)v)->u.closure.e)
+#define GETENV(v) (((LVALUE*)v)->u.closure.env)
 
 #define DIRECTVAL_P(e) (FALSE_P(e) || TRUE_P(e) || NIL_P(e) || FIXNUM_P(e))
 
@@ -78,6 +79,7 @@ typedef struct Closure_tag
   LBasic basic;
   VALUE params;
   VALUE e;
+  VALUE env;
 } Closure;
 
 typedef struct Native_tag
@@ -140,6 +142,8 @@ VALUE lambda(VALUE, VALUE);
 void defsubr(const char*, Subr);
 VALUE make_symbol(const char*, VALUE);
 VALUE evlis(VALUE, VALUE);
+void envpush(VALUE);
+void envpop();
 
 VALUE topenv;
 LVALUE *freelist;
@@ -149,4 +153,9 @@ struct
   Heapslot **slots;
 } heap;
 
+struct
+{
+  long len;
+  VALUE *envs;
+} envstack;
 #endif /* _MYLISP_H_ */

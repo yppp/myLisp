@@ -27,9 +27,12 @@ int main(void)
   topenv = Qnil;
   freelist = NULL;
 
+  envstack.envs = NULL;
+  envstack.len = 0;
+
   static Subr subrs[] = {procedure_car, procedure_cdr, procedure_cons, eq, atom, add, sub, mul, divide, mod, cond, lambda, quote, define, define_macro};
   
-  static const char* subrnames[] = {"car", "cdr", "cons", "eq", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
+  static const char* subrnames[] = {"car", "cdr", "cons", "=", "atom", "+", "-", "*", "/", "%", "cond", "lambda", "quote", "define", "define-macro"};
 
 
   for(i = 0; i < NELEMS(subrs); i++)
@@ -137,4 +140,21 @@ void defsubr(const char *name, Subr pf)
     {
       topenv = append(cons(cons(v, f), Qnil), topenv);
     }
+}
+
+void envpush(VALUE env)
+{
+  envstack.envs = realloc(envstack.envs, sizeof(VALUE*) * (envstack.len + 1));
+  envstack.envs[envstack.len] = env;
+  envstack.len++;
+
+  return;
+}
+
+void envpop()
+{
+  envstack.envs = realloc(envstack.envs, sizeof(VALUE*) * (envstack.len - 1));
+  envstack.len--;
+
+  return;
 }

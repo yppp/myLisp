@@ -26,10 +26,15 @@ VALUE apply(VALUE func, VALUE args, VALUE env)
 	{
 	  VALUE params = GETPARAMS(fbody);
 	  VALUE e = GETE(fbody);
-  
+	  VALUE newenv = GETENV(fbody);
+
 	  VALUE eval_lis = evlis(args, env);
-  
-	  return eval(e, append(pairlis(params, eval_lis), env));
+
+	  envpush(env);
+	  VALUE ret = eval(e, append(pairlis(params, eval_lis), newenv));
+	  envpop();
+
+	  return ret;
 	}
       else if(MACRO_P(fbody))
 	{
@@ -231,6 +236,7 @@ VALUE define_macro(VALUE args, VALUE env)
   macro->u.basic.type = MACRO;
   GETPARAMS(macro) = CDR(CAR(args));
   GETE(macro) = CAR(CDR(args));
+  GETENV(macro) = env;
 
   VALUE ltop = topenv;
   if (NIL_P(ltop)) 
@@ -253,6 +259,7 @@ VALUE lambda(VALUE args, VALUE env)
   lambda->u.basic.type = CLOSURE;
   GETPARAMS(lambda) = CAR(args);
   GETE(lambda) = CAR(CDR(args));
+  GETENV(lambda) = env;
 
   return (VALUE)lambda;
 }
