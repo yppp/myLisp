@@ -219,13 +219,16 @@ VALUE cond(VALUE args, VALUE env)
 VALUE define(VALUE args, VALUE env)
 {
   VALUE ltop = topenv;
+  VALUE evalpair = cons(Qnil, Qnil);
+  CAR(evalpair) = CAR(args);
+  CDR(evalpair) = eval(CAR(CDR(args)), append(cons(evalpair, Qnil), env));
   if (NIL_P(ltop)) 
     {
-      topenv = cons(cons(CAR(args), eval(CAR(CDR(args)), env)), Qnil);
+      topenv = cons(evalpair, Qnil);
     }
   else
     {
-      topenv = append(cons(cons(CAR(args), eval(CAR(CDR(args)), env)), Qnil), topenv);
+      topenv = append(cons(evalpair, Qnil), topenv);
     }
   return CAR(args);
 }
